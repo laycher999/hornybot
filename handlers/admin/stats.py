@@ -1,19 +1,18 @@
 from aiogram import Router, F
-from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import InlineKeyboardButton, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-import os
 from handlers.texts import GOTD_CATEGORIES_TO_EMOJI
 from handlers.buttons import BACK_BUTTON
 from handlers.utils import try_send_message
 from database.users import get_active_users, get_all_users_count, get_all_users_favorite
 from database.gotd import score_category
+from filters.admin import IsAdmin
 
 router = Router()
 
 
-@router.callback_query(F.data == 'admin_stats')
+@router.callback_query(IsAdmin(), F.data == 'admin_stats')
 async def admin_stats(callback: CallbackQuery):
     stats = await get_active_users()
     total_users = await get_all_users_count()
@@ -43,6 +42,4 @@ async def admin_stats(callback: CallbackQuery):
 """
     await try_send_message(callback, text, kb.as_markup())
 
-class SendMessageState(StatesGroup):
-    choosing_message_to_send = State()
 

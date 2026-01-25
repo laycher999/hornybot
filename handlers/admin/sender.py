@@ -8,6 +8,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 from handlers.buttons import BACK_BUTTON
 from handlers.utils import try_send_message
 from database.users import get_all_users_id
+from filters.admin import IsAdmin
 
 
 router = Router()
@@ -17,14 +18,14 @@ class SendMessageState(StatesGroup):
     choosing_message_to_send = State()
 
 
-@router.callback_query(StateFilter(None), F.data == 'admin_send_message')
+@router.callback_query(IsAdmin(),StateFilter(None), F.data == 'admin_send_message')
 async def type_message_for_all_users(callback: CallbackQuery, state: FSMContext):
     kb = InlineKeyboardBuilder().row(InlineKeyboardButton(text=BACK_BUTTON, callback_data='admin_menu'))
     await try_send_message(callback,'Введи сообщение которое хочешь отправить пользователям: ', kb.as_markup())
     await state.set_state(SendMessageState.choosing_message_to_send)
 
 
-@router.callback_query(F.data == "cancel_broadcast")
+@router.callback_query(IsAdmin(),F.data == "cancel_broadcast")
 async def cancel_broadcast(callback: CallbackQuery, state: FSMContext):
     kb = InlineKeyboardBuilder().row(InlineKeyboardButton(text=BACK_BUTTON, callback_data='admin_menu'))
     global CANCEL_BROADCAST

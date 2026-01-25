@@ -5,12 +5,13 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from handlers.buttons import BACK_BUTTON
 from handlers.utils import try_send_message
+from filters.admin import IsAdmin
 
 
 router = Router()
 
 
-@router.callback_query(F.data == 'admin_menu')
+@router.callback_query(IsAdmin(), F.data == 'admin_menu')
 async def admin_menu(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     kb = InlineKeyboardBuilder()

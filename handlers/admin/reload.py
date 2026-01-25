@@ -5,13 +5,14 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 import os
 from handlers.buttons import BACK_BUTTON
 from handlers.utils import try_send_message
+from filters.admin import IsAdmin
 
 
 router = Router()
 
 
 
-@router.callback_query(F.data == 'admin_reload')
+@router.callback_query(IsAdmin(), F.data == 'admin_reload')
 async def admin_reload(callback: CallbackQuery):
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text='✅ Да', callback_data='confirm:reload'))
@@ -19,7 +20,7 @@ async def admin_reload(callback: CallbackQuery):
     await try_send_message(callback, '⚠️ Вы точно хотите перезагрузить бота?', kb.as_markup())
 
 
-@router.callback_query(F.data == 'confirm:reload')
+@router.callback_query(IsAdmin(), F.data == 'confirm:reload')
 async def confirm_reload(callback: CallbackQuery):
     try:
         os.system("systemctl restart bot.service")

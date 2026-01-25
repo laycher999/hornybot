@@ -5,16 +5,16 @@ from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import InlineKeyboardButton, Message, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 
-from database.jsondb import update_data
 from handlers.buttons import BACK_BUTTON
 from handlers.utils import try_send_message, page_menu, split_list, PageCallback
+from filters.admin import IsAdmin
 
 from database.gifts import add_gift, remove_gift, get_gifts, remove_gift_by_id
 
 
 router = Router()
 
-@router.callback_query(F.data == 'admin_gifts_menu')
+@router.callback_query(IsAdmin(), F.data == 'admin_gifts_menu')
 async def gifts_menu(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     kb = InlineKeyboardBuilder()
@@ -36,7 +36,7 @@ class RemoveGift(CallbackData, prefix='remove_gift'):
     delete: bool = False
 
 
-@router.callback_query(F.data == 'gifts_check')
+@router.callback_query(IsAdmin(),F.data == 'gifts_check')
 async def gifts_check_choose_type(callback: CallbackQuery):
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text='VPN', callback_data='check:vpn'), InlineKeyboardButton(text='Boosty', callback_data='check:boosty'))
@@ -44,7 +44,7 @@ async def gifts_check_choose_type(callback: CallbackQuery):
     await try_send_message(callback, 'Выбери какой тип промокода хочешь посмотреть: ', kb.as_markup())
 
 
-@router.callback_query(F.data.startswith('check:'))
+@router.callback_query(IsAdmin(),F.data.startswith('check:'))
 async def gifts_check_save_state(callback: CallbackQuery, state: FSMContext):
     type = callback.data.split(':')[-1]
     items_list = await get_gifts(type)
@@ -58,7 +58,7 @@ async def gifts_check_save_state(callback: CallbackQuery, state: FSMContext):
     )
     await gifts_check_pagemenu(callback, PageCallback(page=0, menu='gifts_check_pagemenu'), state)
 
-@router.callback_query(PageCallback.filter(F.menu == 'gifts_check_pagemenu'))
+@router.callback_query(IsAdmin(),PageCallback.filter(F.menu == 'gifts_check_pagemenu'))
 async def gifts_check_pagemenu(callback: CallbackQuery, callback_data: CallbackData, state: FSMContext):
     data = await state.get_data()
     items_list = data['items_list']
@@ -81,7 +81,7 @@ async def gifts_check_pagemenu(callback: CallbackQuery, callback_data: CallbackD
 
     await try_send_message(callback, 'Выберите промокод для удаления', kb.as_markup())
 
-@router.callback_query(RemoveGift.filter(F.delete == False))
+@router.callback_query(IsAdmin(),RemoveGift.filter(F.delete == False))
 async def confirm_deleting_gift(callback: CallbackQuery, callback_data: CallbackData, state: FSMContext):
     kb = InlineKeyboardBuilder()
     id = callback_data.id
@@ -89,7 +89,7 @@ async def confirm_deleting_gift(callback: CallbackQuery, callback_data: Callback
     kb.add(InlineKeyboardButton(text='❌ Нет', callback_data='admin_menu'))
     await try_send_message(callback, '⚠️ Вы точно хотите удалить промокод?', kb.as_markup())
 
-@router.callback_query(RemoveGift.filter(F.delete == True))
+@router.callback_query(IsAdmin(),RemoveGift.filter(F.delete == True))
 async def deleting_gift(callback: CallbackQuery, callback_data: CallbackData, state: FSMContext):
     id = callback_data.id
     await remove_gift_by_id(id)
@@ -102,7 +102,7 @@ class AddGiftState(StatesGroup):
     url = State()
 
 
-@router.callback_query(F.data == 'gifts_add')
+@router.callback_query(IsAdmin(),F.data == 'gifts_add')
 async def choose_gift_type(callback: CallbackQuery, state: FSMContext):
     await state.clear()
     kb = InlineKeyboardBuilder()
@@ -111,14 +111,14 @@ async def choose_gift_type(callback: CallbackQuery, state: FSMContext):
     await state.set_state(AddGiftState.type)
     await try_send_message(callback, 'Выбери какой тип промокода хочешь добавить:', kb.as_markup())
 
-@router.callback_query(F.data.startswith('gift:add:'))
+@router.callback_query(IsAdmin(),F.data.startswith('gift:add:'))
 async def gift_add_url(callback: CallbackQuery, state: FSMContext):
     kb = InlineKeyboardBuilder().row(InlineKeyboardButton(text='Отмена', callback_data='admin_menu'))
     await state.update_data(type=callback.data.split(':')[-1])
     await state.set_state(AddGiftState.url)
     await try_send_message(callback, 'Отправь URL промокода (обычным сообщением):', kb.as_markup())
 
-@router.message(AddGiftState.url)
+@router.message(IsAdmin(),AddGiftState.url)
 async def gift_save_url(message: Message, state: FSMContext):
     kb = InlineKeyboardBuilder().row(
         InlineKeyboardButton(text='❌ Отмена', callback_data='gift:cancel'),
@@ -143,7 +143,7 @@ async def gift_save_url(message: Message, state: FSMContext):
     )
 
 
-@router.callback_query(F.data.startswith('gift:cancel'))
+@router.callback_query(IsAdmin(),F.data.startswith('gift:cancel'))
 async def gift_add_url(callback: CallbackQuery, state: FSMContext):
     kb = InlineKeyboardBuilder().row(InlineKeyboardButton(text='Вернуться в меню', callback_data='admin_menu'))
     data = await state.get_data()

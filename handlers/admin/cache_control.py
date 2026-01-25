@@ -4,6 +4,7 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from handlers.buttons import BACK_BUTTON
 from handlers.utils import try_send_message
+from filters.admin import IsAdmin
 
 from database.media import show_media_category, delete_media_category
 
@@ -11,7 +12,7 @@ router = Router()
 
 
 
-@router.callback_query(F.data == 'admin_cache')
+@router.callback_query(IsAdmin(), F.data == 'admin_cache')
 async def cache_control_menu(callback: CallbackQuery):
     kb = InlineKeyboardBuilder()
     media_category = await show_media_category()
@@ -23,7 +24,7 @@ async def cache_control_menu(callback: CallbackQuery):
     await try_send_message(callback,'Category (file count)', kb.as_markup())
 
 
-@router.callback_query(F.data.startswith('cache:clear'))
+@router.callback_query(IsAdmin(),F.data.startswith('cache:clear'))
 async def clear_cache_confirm(callback: CallbackQuery):
     kb = InlineKeyboardBuilder()
     kb.add(InlineKeyboardButton(text='✅ Да', callback_data='confirm:'+callback.data))
@@ -32,7 +33,7 @@ async def clear_cache_confirm(callback: CallbackQuery):
     await try_send_message(callback,'⚠️ Вы точно хотите очистить файлы кеша в ' + category + '?', kb.as_markup())
 
 
-@router.callback_query(F.data.startswith('confirm:cache:clear'))
+@router.callback_query(IsAdmin(),F.data.startswith('confirm:cache:clear'))
 async def clearing_cache(callback: CallbackQuery):
     category = callback.data.split(':')[-1]
     await callback.answer(category + " - была очищена!", show_alert=True)

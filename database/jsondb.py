@@ -10,12 +10,6 @@ def f_open(file_name='games'):
         data = json.load(f)
         return data
 
-def f_write(data):
-    data = json.dumps(data)
-    data = json.loads(str(data))
-    with open('./games.json', 'w', encoding='utf-8') as f:
-        json.dump(data, f, indent=4, ensure_ascii=False)
-
 def sort_games_by_tag():
     pc_tags = []
     android_tags = []
@@ -40,18 +34,3 @@ def load():
     pc_tags, android_tags = sort_games_by_tag()
 
 load()
-
-
-def update_data():
-    data = {}
-    i = 1
-    for game in games:
-        data[game] = {}
-        data[game]['name'] = game
-        data[game]['id'] = i
-        data[game]['description'] = games[game]['description']
-        data[game]['tags'] = games[game]['tags']
-        data[game]['picture'] = games[game]['picture']
-        data[game]['url'] = games[game]['url']
-        i += 1
-    f_write(data)
