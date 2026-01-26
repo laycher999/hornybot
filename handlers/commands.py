@@ -102,6 +102,12 @@ async def show_most_favorite_games(callback: CallbackQuery):
 
 async def show_most_favorite_games(callback: CallbackQuery, games_list):
     kb = InlineKeyboardBuilder()
+    games_list = sorted(
+        games_list,
+        key=lambda game: game['count'],
+        reverse=True
+    )
+
     for i, g in enumerate(games_list):
         text = f'{i+1}. {g["name"]} - ⭐{g['count']}'
         kb.row(InlineKeyboardButton(text=text, url=g['url']))
