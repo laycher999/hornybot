@@ -18,6 +18,7 @@ async def admin_stats(callback: CallbackQuery):
     total_users = await get_all_users_count()
     users_favorite = await get_all_users_favorite()
     gotd_category_stats = await score_category()
+    total_getted_items = sum(gotd_category_stats.values())
     gotd_category_stats =  sorted(gotd_category_stats.items(), key=lambda x: x[1], reverse=True)
     kb = InlineKeyboardBuilder()
     kb.row(InlineKeyboardButton(text=BACK_BUTTON, callback_data='admin_menu'))
@@ -25,18 +26,17 @@ async def admin_stats(callback: CallbackQuery):
     text = f"""📊 Статистика проекта
 
 👤 Пользователи:
-├ 🗓️ За день: {stats['active_today']}
+<code>├ 🗓️ За день: {stats['active_today']}
 ├ 📆 За неделю: {stats['active_week']}
 ├ 🗓️ За месяц: {stats['active_month']}
-└ 🌐 Всего: {total_users}
+└ 🌐 Всего: {total_users}</code>
 
-🌸 Девочка-дня:
+🌸 Девочка-дня:<code>
 """
-    total_getted_items = 0
     for category, count in gotd_category_stats:
-        text += f'├ {GOTD_CATEGORIES_TO_EMOJI.get(category)} {category.split('-')[0]}: {count}\n'
-        total_getted_items += count
-    text += f"""└ 🌐 Всего: {total_getted_items}
+        percent = round(count / total_getted_items * 100, 1)
+        text += f'├ {GOTD_CATEGORIES_TO_EMOJI.get(category)} {category.split('-')[0]}({percent}%): {count}\n'
+    text += f"""</code>└ 🌐 Всего: {total_getted_items}
 
 🌟 Добавлено в избранное: {users_favorite}
 """
