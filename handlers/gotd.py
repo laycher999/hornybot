@@ -1,6 +1,7 @@
 from aiogram import types, Router, F
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
+from asyncio import sleep
 import random
 import os
 from datetime import datetime
@@ -14,7 +15,7 @@ from config import ADMINS
 from database.gifts import get_gift_and_remove
 from database.gotd import can_play_today, get_user_items, add_user_item, get_item_name, get_all_user_items_category
 from .texts import NEGATIVE_REACTIONS, POSITIVE_REACTIONS, GOTD_ALREADY_PLAYED_MSG, TEXT_TO_FOLDER, GOTD_FIRST_MENU_MSG, \
-    GOTD_NOMEGAPRIZ_TEXT, GOTD_CATEGORIES_TO_EMOJI, GOTD_NO_ITEMS_MSG, GOTD_HISTORY_PAGEMENU_MSG, GOTD_HISTORY_ITEM_MSG
+    GOTD_NOMEGAPRIZ_TEXT, GOTD_CATEGORIES_TO_EMOJI, GOTD_NO_ITEMS_MSG, GOTD_HISTORY_PAGEMENU_MSG, GOTD_HISTORY_ITEM_MSG, GOTD_LOADING_MESSAGES
 from .buttons import GOTD_GET_GIRL_BTN, GOTD_HISTORY_BTN, GOTD_MEGAPRIZ_BTN, GOTD_VPNWIN_BTN, GOTD_VPNAD_BTN
 from .utils import try_send_message, page_menu, PageCallback, split_list
 
@@ -68,6 +69,13 @@ async def casino_menu(callback: types.CallbackQuery):
     await try_send_message(target=callback, text=GOTD_FIRST_MENU_MSG, reply_markup=keyboard)
 
 @router.callback_query(F.data == 'get_item')
+async def casino_start_validating(callback: types.CallbackQuery):
+    rand = random.randint(0, len(GOTD_LOADING_MESSAGES) - 1)
+    msg = GOTD_LOADING_MESSAGES[rand]
+    await try_send_message(target=callback, text=msg)
+    await sleep(2)
+    await casino_start(callback)
+
 async def casino_start(callback: types.CallbackQuery):
     if not await can_play_today(callback.from_user.id):
         text = GOTD_ALREADY_PLAYED_MSG
