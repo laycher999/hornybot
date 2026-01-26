@@ -5,11 +5,11 @@ from aiogram.utils.keyboard import InlineKeyboardBuilder
 
 from aiogram.fsm.state import State, StatesGroup
 
-from database.users import user_show_favorites_games
+from database.users import user_show_favorites_games, get_most_favorite_games
 from .utils import page_menu, favorite_button, PageCallback, try_send_message
 from database.jsondb import translations, games
 from .buttons import BACK_BUTTON, MY_TRANSLATES_DOWNLOAD_BTN, DOWNLOAD_BTN, POLEZNOSTI_DOWNLOAD_BTN, POLEZNOSTI_GUIDE_BTN
-from .texts import GAME_CARD_TRANSLATES, POLEZNOSTI_CARD
+from .texts import GAME_CARD_TRANSLATES, POLEZNOSTI_CARD, FAVORITE_TOP_GAMES
 from config import POLEZNOSTI
 
 
@@ -86,3 +86,25 @@ async def show_poleznosti(callback: CallbackQuery, callback_data: PageCallback):
 
     text = POLEZNOSTI_CARD.format(name=app['title'], description=app['desc'])
     await try_send_message(callback, text, kb.as_markup(), './img/poleznosti.jpeg')
+
+@router.callback_query(F.data == 'most_favorite_games')
+async def show_most_favorite_games(callback: CallbackQuery):
+    games_id_list = await get_most_favorite_games()
+    games_list = list()
+    for game in games:
+        json_game = games[game]
+        if json_game['id'] in games_id_list:
+            json_game['count'] = games_id_list[json_game['id']]
+            games_list.append(json_game)
+
+    await show_most_favorite_games(callback, games_list)
+
+
+async def show_most_favorite_games(callback: CallbackQuery, games_list):
+    kb = InlineKeyboardBuilder()
+    for i, g in enumerate(games_list):
+        text = f'{i+1}. {g["name"]} - ⭐{g['count']}'
+        kb.row(InlineKeyboardButton(text=text, url=g['url']))
+    kb.row(InlineKeyboardButton(text=BACK_BUTTON, callback_data='start'))
+
+    await try_send_message(callback, FAVORITE_TOP_GAMES, kb.as_markup())

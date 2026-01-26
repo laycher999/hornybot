@@ -27,7 +27,8 @@ async def start_command(message: Message, state: FSMContext):
     kb.row(InlineKeyboardButton(text=START_BTNS[1], callback_data='find_game'))
     kb.add(InlineKeyboardButton(text=START_BTNS[0], callback_data='quiz_menu'))
     kb.row(InlineKeyboardButton(text=START_BTNS[4], callback_data='my_favorites'))
-    kb.add(InlineKeyboardButton(text=START_BTNS[3], callback_data=PageCallback(page=0, menu='poleznosti').pack())) 
+    kb.add(InlineKeyboardButton(text=START_BTNS[3], callback_data=PageCallback(page=0, menu='poleznosti').pack()))
+    kb.row(InlineKeyboardButton(text=START_BTNS[7], callback_data='most_favorite_games'))
     
     if message.from_user.id in ADMINS:
         kb.row(InlineKeyboardButton(text=ADMIN_BTN, callback_data='admin_menu'))

@@ -13,9 +13,6 @@ DB_NAME = os.getenv("DB_NAME")
 BOT_TOKEN = os.getenv("BOT_TOKEN")
 
 
-# TEST 1
-RESTRICT = ['фута', 'фурри', 'геи'] # указывать категории с жестким запретом
-RANDOM_SELECTION = 10 # количество игр для рандома
 
 VIDEO_FORMATS = [
     "mp4",
@@ -45,6 +42,12 @@ IMAGE_FORMATS = [
     "avif",
     "raw", "nef", "cr2", "arw", "dng"
 ]
+
+# TEST 1
+RESTRICT = ['фута', 'фурри', 'геи'] # указывать категории с жестким запретом
+RANDOM_SELECTION = 10 # количество игр для рандома
+
+
 
 QUIZ_QUESTIONS = [
     '2D вайфу или 3D мир?',

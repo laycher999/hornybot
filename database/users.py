@@ -90,3 +90,17 @@ async def get_all_users_favorite():
     COUNT(*) FROM users_to_games"""
     count = await db.fetchval(query)
     return count
+
+async def get_most_favorite_games():
+    query = """
+    SELECT
+    game_id,
+    COUNT(*) AS cnt
+FROM users_to_games
+GROUP BY game_id
+ORDER BY cnt DESC
+LIMIT 10;
+    """
+    rows = await db.fetch(query)
+    result = {row["game_id"]: row["cnt"] for row in rows}
+    return result
