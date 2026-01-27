@@ -13,7 +13,7 @@ from .buttons import (
 )
 from config import ADMINS
 from database.gifts import get_gift_and_remove
-from database.gotd import can_play_today, get_user_items, add_user_item, get_item_name, get_all_user_items_category
+from database.gotd import can_play_today, get_user_items, add_user_item, get_item_name, get_all_user_items_category, show_most_active_users, show_user_place
 from .texts import NEGATIVE_REACTIONS, POSITIVE_REACTIONS, GOTD_ALREADY_PLAYED_MSG, TEXT_TO_FOLDER, GOTD_FIRST_MENU_MSG, \
     GOTD_NOMEGAPRIZ_TEXT, GOTD_CATEGORIES_TO_EMOJI, GOTD_NO_ITEMS_MSG, GOTD_HISTORY_PAGEMENU_MSG, GOTD_HISTORY_ITEM_MSG, GOTD_LOADING_MESSAGES
 from .buttons import GOTD_GET_GIRL_BTN, GOTD_HISTORY_BTN, GOTD_MEGAPRIZ_BTN, GOTD_VPNWIN_BTN, GOTD_VPNAD_BTN
@@ -63,6 +63,8 @@ async def casino_menu(callback: types.CallbackQuery):
     btns = [
         [types.InlineKeyboardButton(text=GOTD_GET_GIRL_BTN, callback_data='get_item')],
         [types.InlineKeyboardButton(text=GOTD_HISTORY_BTN, callback_data='item_history')],
+        [types.InlineKeyboardButton(text="Top 10 collectors", callback_data='gotd_leaderboard')],
+
         [types.InlineKeyboardButton(text=BACK_BUTTON, callback_data='start')]
     ]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=btns)
@@ -170,6 +172,30 @@ async def show_selected_item(callback: types.CallbackQuery, state: FSMContext):
     item_name = await get_item_name(item_id)
     await try_send_message(callback, GOTD_HISTORY_ITEM_MSG.format(item_id=item_id), kb.as_markup(), item_name)
 
+
+@router.callback_query(F.data == 'gotd_leaderboard')
+async def show_leaderboard(callback: types.CallbackQuery):
+    kb = InlineKeyboardBuilder()
+    user_in_top10 = False
+
+    leaderboard = await show_most_active_users()
+    for i, user in enumerate(leaderboard):
+        id, name, count = user['id'], user['name'], user['count']
+        text = f'{i+1}. {name} - 👧{count}'
+        if id == callback.from_user.id:
+                text += '   ⬅️ ВЫ'
+                user_in_top10 = True
+        kb.row(InlineKeyboardButton(text=text, callback_data='None'))
+
+    if not user_in_top10:
+        result = await show_user_place(callback.from_user.id)
+        if result:
+            place, count = result
+            text = f'{place}. {callback.from_user.first_name} - 👧{count}'
+            kb.row(InlineKeyboardButton(text=text, callback_data='None'))
+
+    kb.row(InlineKeyboardButton(text=BACK_BUTTON, callback_data='casino_user_menu'))
+    await try_send_message(callback, 'Топ 10 коллекционеров', kb.as_markup())
 
 
 
