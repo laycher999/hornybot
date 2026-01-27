@@ -70,13 +70,6 @@ async def casino_menu(callback: types.CallbackQuery):
 
 @router.callback_query(F.data == 'get_item')
 async def casino_start_validating(callback: types.CallbackQuery):
-    rand = random.randint(0, len(GOTD_LOADING_MESSAGES) - 1)
-    msg = GOTD_LOADING_MESSAGES[rand]
-    await try_send_message(target=callback, text=msg)
-    await sleep(2)
-    await casino_start(callback)
-
-async def casino_start(callback: types.CallbackQuery):
     if not await can_play_today(callback.from_user.id):
         text = GOTD_ALREADY_PLAYED_MSG
         btns = [
@@ -85,7 +78,13 @@ async def casino_start(callback: types.CallbackQuery):
         keyboard = types.InlineKeyboardMarkup(inline_keyboard=btns)
         await try_send_message(target=callback,text=text, reply_markup=keyboard)
         return
+    rand = random.randint(0, len(GOTD_LOADING_MESSAGES) - 1)
+    msg = GOTD_LOADING_MESSAGES[rand]
+    await try_send_message(target=callback, text=msg)
+    await sleep(2)
+    await casino_start(callback)
 
+async def casino_start(callback: types.CallbackQuery):
     btns = [ [types.InlineKeyboardButton(text=random.choice(POSITIVE_REACTIONS), callback_data='casino_user_menu')]]
     keyboard = types.InlineKeyboardMarkup(inline_keyboard=btns)
 
