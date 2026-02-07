@@ -87,41 +87,50 @@ async def casino_start_validating(callback: types.CallbackQuery):
     await casino_start(callback)
 
 async def casino_start(callback: types.CallbackQuery):
-    btns = [ [types.InlineKeyboardButton(text=random.choice(POSITIVE_REACTIONS), callback_data='casino_user_menu')]]
-    keyboard = types.InlineKeyboardMarkup(inline_keyboard=btns)
+    try:
+        btns = [ [types.InlineKeyboardButton(text=random.choice(POSITIVE_REACTIONS), callback_data='casino_user_menu')]]
+        keyboard = types.InlineKeyboardMarkup(inline_keyboard=btns)
 
 
-    #Получение папки, файла и обработка случая если закончатся картинки
-    folder = await choose_folder()
-    media_path = await get_random_image(folder, callback.from_user.id)
-    if media_path is None:
-        await try_send_message(callback, 'Для вас у нас закончились девочки =(', reply_markup=keyboard)
+        #Получение папки, файла и обработка случая если закончатся картинки
+        folder = await choose_folder()
+        media_path = await get_random_image(folder, callback.from_user.id)
+        if media_path is None:
+            await try_send_message(callback, 'Для вас у нас закончились девочки =(', reply_markup=keyboard)
 
-    text = TEXT_TO_FOLDER[folder]
+        text = TEXT_TO_FOLDER[folder]
 
-    await add_user_item(callback.from_user.id, folder, media_path)
-    if folder in ['MEGAPRIZ - 0.25%', 'vpnWIN - 0.25%']:
-        text = f"{folder.split('-')[0]} выпал пользователю @{callback.from_user.username}"
+        await add_user_item(callback.from_user.id, folder, media_path)
+        if folder in ['MEGAPRIZ - 0.25%', 'vpnWIN - 0.25%']:
+            text = f"{folder.split('-')[0]} выпал пользователю @{callback.from_user.username}"
+            for admin_id in ADMINS:
+                await callback.message.bot.send_message(admin_id, text)
+
+        if folder == 'MEGAPRIZ - 0.25%':
+            try:
+                url = await get_gift_and_remove('boosty')
+                btns.append([types.InlineKeyboardButton(text=GOTD_MEGAPRIZ_BTN, url=url)])
+                keyboard = types.InlineKeyboardMarkup(inline_keyboard=btns)
+                video = f'./img/casino_files/MEGAPRIZ - 0.25%/Card102.mp4'
+                await try_send_message(target=callback, text=text, media_path=video, reply_markup=keyboard)
+            except:
+                await try_send_message(target=callback, text=GOTD_NOMEGAPRIZ_TEXT, reply_markup=keyboard)
+        else:
+            if folder == "vpnAD - 5%":
+                btns.append([types.InlineKeyboardButton(text=GOTD_VPNAD_BTN, url='https://t.me/@hornystore_bot')])
+            elif folder == "vpnWIN - 0.25%":
+                url = await get_gift_and_remove('vpn')
+                btns.append([types.InlineKeyboardButton(text=GOTD_VPNWIN_BTN, url=url)])
+                keyboard = types.InlineKeyboardMarkup(inline_keyboard=btns)
+            await try_send_message(target=callback, text=text, media_path=media_path, reply_markup=keyboard)
+    except Exception as e:
+        keyboard = types.InlineKeyboardMarkup(inline_keyboard=
+                                              [types.InlineKeyboardButton(text='Назад', callback_data='casino_user_menu')]
+                                              )
+        await try_send_message(target=callback, text='Что-то пошло не так. Попробуйте еще раз', reply_markup=keyboard)
         for admin_id in ADMINS:
-            await callback.message.bot.send_message(admin_id, text)
+            await callback.message.bot.send_message(admin_id, 'Ошибка при получение девочки:\n' + e)
 
-    if folder == 'MEGAPRIZ - 0.25%':
-        try:
-            url = await get_gift_and_remove('boosty')
-            btns.append([types.InlineKeyboardButton(text=GOTD_MEGAPRIZ_BTN, url=url)])
-            keyboard = types.InlineKeyboardMarkup(inline_keyboard=btns)
-            video = f'./img/casino_files/MEGAPRIZ - 0.25%/Card102.mp4'
-            await try_send_message(target=callback, text=text, media_path=video, reply_markup=keyboard)
-        except:
-            await try_send_message(target=callback, text=GOTD_NOMEGAPRIZ_TEXT, reply_markup=keyboard)
-    else:
-        if folder == "vpnAD - 5%":
-            btns.append([types.InlineKeyboardButton(text=GOTD_VPNAD_BTN, url='https://t.me/@hornystore_bot')])
-        elif folder == "vpnWIN - 0.25%":
-            url = await get_gift_and_remove('vpn')
-            btns.append([types.InlineKeyboardButton(text=GOTD_VPNWIN_BTN, url=url)])
-            keyboard = types.InlineKeyboardMarkup(inline_keyboard=btns)
-        await try_send_message(target=callback, text=text, media_path=media_path, reply_markup=keyboard)
 
 class ItemsHistory(StatesGroup):
     items_list = State()
@@ -191,7 +200,7 @@ async def show_leaderboard(callback: types.CallbackQuery):
         result = await show_user_place(callback.from_user.id)
         if result:
             place, count = result
-            text = f'{place}. {callback.from_user.first_name} - 👧{count}'
+            text = f'{place}. {callback.from_user.first_name} - 👧{count}  ⬅️ ВЫ'
             kb.row(InlineKeyboardButton(text=text, callback_data='None'))
 
     kb.row(InlineKeyboardButton(text=BACK_BUTTON, callback_data='casino_user_menu'))
